@@ -8,7 +8,7 @@ Point2D Cat::Move(World* world) {
   if (!path.empty()) {
     return path.back();
   }
-  std::cout <<"RANDOM\n";
+  std::cout <<"CAT RANDOM\n";
   auto rand = Random::Range(0, 5);
   switch (rand) {
     case 0:
