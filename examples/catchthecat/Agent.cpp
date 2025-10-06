@@ -18,17 +18,56 @@ std::vector<Point2D> Agent::generatePath(World* w) {
 
   while (!frontier.empty()) {
     // get the current from frontier
+    Point2D currentPos = frontier.front();
     // remove the current from frontierset
+    frontier.pop();
+    frontierSet.erase(currentPos);
     // mark current as visited
+    visited[currentPos] = true;
     // getVisitableNeightbors(world, current) returns a vector of neighbors that are not visited, not cat, not block, not in the queue
+    std::vector<Point2D> neighbors;
+    neighbors.push_back(World::NE(currentPos));
+    neighbors.push_back(World::NW(currentPos));
+    neighbors.push_back(World::E(currentPos));
+    neighbors.push_back(World::W(currentPos));
+    neighbors.push_back(World::SE(currentPos));
+    neighbors.push_back(World::SW(currentPos));
+    for (auto neighbor : neighbors) {
+
+      if (!w->getContent(neighbor) && !visited.contains(neighbor) && !frontierSet.contains(neighbor)) {
+        //valid neighbor
+        cameFrom[neighbor] = currentPos;
+        frontier.push(neighbor);
+        frontierSet.insert(neighbor);
+        if (w->catWinsOnSpace(neighbor)) {
+          borderExit = neighbor;
+          goto exitLoop;
+        }
+      }
+    }
     // iterate over the neighs:
     // for every neighbor set the cameFrom
     // enqueue the neighbors to frontier and frontierset
     // do this up to find a visitable border and break the loop
   }
+  exitLoop:
+
 
   // if the border is not infinity, build the path from border to the cat using the camefrom map
   // if there isnt a reachable border, just return empty vector
   // if your vector is filled from the border to the cat, the first element is the catcher move, and the last element is the cat move
-  return vector<Point2D>();
+  if (borderExit == Point2D::INFINITE) {
+    return vector<Point2D>();
+
+  }else {
+    vector<Point2D> path;
+    Point2D currentPos = borderExit;
+
+    while (cameFrom.contains(currentPos)) {
+      path.push_back(currentPos);
+      currentPos = cameFrom[currentPos];
+    }
+
+    return path;
+  }
 }
