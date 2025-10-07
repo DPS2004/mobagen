@@ -10,9 +10,10 @@ public:
   int NeighborCount(World* w, Point2D p);
   enum strategy {
     HOLE_WALL,
-    LONGEST_PATH
+    LONGEST_PATH,
+    VARIABLE
   };
-  strategy currentStrategy = LONGEST_PATH;
+  strategy currentStrategy = VARIABLE;
 };
 
 #endif  // CATCHER_H

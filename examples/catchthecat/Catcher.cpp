@@ -5,6 +5,10 @@
 
 
 Point2D Catcher::Move(World* world) {
+
+  strategy moveStrategy = currentStrategy;
+
+
   auto side = world->getWorldSideSize() / 2;
   auto cat = world->getCat();
   std::vector<Point2D> basePath = generatePath(world);
@@ -15,7 +19,20 @@ Point2D Catcher::Move(World* world) {
       std::cout <<"CATCHER: CAT IS ABOUT TO WIN. BLOCKING END\n";
       return catGoal;
     }
-    if (currentStrategy == HOLE_WALL) {
+
+    if (moveStrategy == VARIABLE) {
+      int distance = basePath.size();
+      if (distance < 3) {
+        std::cout <<"CATCHER: CHOOSING HOLE\n";
+        moveStrategy = HOLE_WALL;
+      }else {
+        std::cout <<"CATCHER: CHOOSING LONGEST\n";
+        moveStrategy = LONGEST_PATH;
+
+      }
+    }
+
+    if (moveStrategy == HOLE_WALL) {
 
       int neighbors = NeighborCount(world, catGoal);
       if (neighbors==0) { //no neighbors, just fill it in.
@@ -57,11 +74,10 @@ Point2D Catcher::Move(World* world) {
 
     }
 
-    if (currentStrategy == LONGEST_PATH) {
+    if (moveStrategy == LONGEST_PATH) {
 
       std::vector<Point2D> possibleMoves;
       possibleMoves.push_back(basePath.front());
-      possibleMoves.push_back(basePath.back());
       possibleMoves.push_back(World::NE(cat));
       possibleMoves.push_back(World::NW(cat));
       possibleMoves.push_back(World::E(cat));
@@ -70,18 +86,23 @@ Point2D Catcher::Move(World* world) {
       possibleMoves.push_back(World::SW(cat));
 
       int longestLength = 0;
+      bool isNeighbor = false;
       Point2D longestMove;
       for (auto m : possibleMoves) {
+        if (world->catcherCanMoveToPosition(m) && !world->getContent(m)) {
+          std::vector<Point2D> altPath = generatePath(world,m);
+          if (altPath.empty()) {
+            std::cout <<"CATCHER: ALT PATH HAS NO SOLUTION.\n";
+            return m;
+          }
+          std::cout <<"CATCHER CHECKING ALT PATH: " << world->catCanMoveToPosition(m) << " " << altPath.size() <<"\n";
+          if (altPath.size() > longestLength || (altPath.size() == longestLength && isNeighbor )) {
+            longestLength = altPath.size();
+            longestMove = m;
+            isNeighbor = world->catCanMoveToPosition(m);
+          }
+        }
 
-        std::vector<Point2D> altPath = generatePath(world,m);
-        if (altPath.empty()) {
-          std::cout <<"CATCHER: ALT PATH HAS NO SOLUTION.\n";
-          return m;
-        }
-        if (altPath.size() > longestLength) {
-          longestLength = altPath.size();
-          longestMove = m;
-        }
       }
       std::cout <<"CATCHER: LONGEST SOLUTION WAS. " << longestLength << "\n";
 
