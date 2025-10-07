@@ -11,6 +11,8 @@ Point2D Catcher::Move(World* world) {
 
   auto side = world->getWorldSideSize() / 2;
   auto cat = world->getCat();
+
+  bool prioritizeNeighbors = false;
   std::vector<Point2D> basePath = generatePath(world);
   if (!basePath.empty()) {
     Point2D catGoal = basePath.front();
@@ -22,12 +24,28 @@ Point2D Catcher::Move(World* world) {
 
     if (moveStrategy == VARIABLE) {
       int distance = basePath.size();
-      if (distance < 3) {
-        std::cout <<"CATCHER: CHOOSING HOLE\n";
-        moveStrategy = HOLE_WALL;
-      }else {
-        std::cout <<"CATCHER: CHOOSING LONGEST\n";
+      int centerDistance = abs(cat.x) + abs(cat.y);
+      std::cout<< "Catcher info: Side " << side << " cat distance " << distance << " center distance " << centerDistance <<"\n";
+      int catNeighbors = NeighborCount(world,cat);
+      if (catNeighbors >= 3) {
+        std::cout <<"CATCHER: CAT HAS MANY NEIGHBORS, CHOOSING LONGEST + NEIGHBOR PRIORITY\n";
+        prioritizeNeighbors = true;
         moveStrategy = LONGEST_PATH;
+
+      }else {
+        if (distance < 4) {
+          std::cout <<"CATCHER: CHOOSING HOLE\n";
+          moveStrategy = HOLE_WALL;
+        }else {
+          std::cout <<"CATCHER: CHOOSING LONGEST\n";
+          moveStrategy = LONGEST_PATH;
+          if (distance >= side && centerDistance > side-4) {
+            std::cout <<"CATCHER: HIGH DISTANCE, FAVORING NEIGHBORS\n";
+            prioritizeNeighbors = true;
+
+          }
+
+        }
 
       }
     }
@@ -96,7 +114,11 @@ Point2D Catcher::Move(World* world) {
             return m;
           }
           std::cout <<"CATCHER CHECKING ALT PATH: " << world->catCanMoveToPosition(m) << " " << altPath.size() <<"\n";
-          if (altPath.size() > longestLength || (altPath.size() == longestLength && isNeighbor )) {
+          bool neighborBenefit = isNeighbor;
+          if (!prioritizeNeighbors) {
+            neighborBenefit = !neighborBenefit;
+          }
+          if (altPath.size() > longestLength || (altPath.size() == longestLength && !neighborBenefit )) {
             longestLength = altPath.size();
             longestMove = m;
             isNeighbor = world->catCanMoveToPosition(m);
