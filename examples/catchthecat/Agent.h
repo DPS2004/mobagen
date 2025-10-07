@@ -11,7 +11,7 @@ public:
 
   virtual Point2D Move(World*) = 0;
 
-  std::vector<Point2D> generatePath(World* w);
+  std::vector<Point2D> generatePath(World* w, Point2D block = Point2D::INFINITE);
 };
 
 #endif  // AGENT_H

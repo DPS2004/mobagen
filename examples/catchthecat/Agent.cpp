@@ -4,7 +4,7 @@
 #include <queue>
 #include "World.h"
 using namespace std;
-std::vector<Point2D> Agent::generatePath(World* w) {
+std::vector<Point2D> Agent::generatePath(World* w, Point2D block) {
   unordered_map<Point2D, Point2D> cameFrom;  // to build the flowfield and build the path
   queue<Point2D> frontier;                   // to store next ones to visit
   unordered_set<Point2D> frontierSet;        // OPTIMIZATION to check faster if a point is in the queue
@@ -34,14 +34,19 @@ std::vector<Point2D> Agent::generatePath(World* w) {
     neighbors.push_back(World::SW(currentPos));
     for (auto neighbor : neighbors) {
 
-      if (!w->getContent(neighbor) && !visited.contains(neighbor) && !frontierSet.contains(neighbor)) {
+      if (!w->getContent(neighbor) && !visited.contains(neighbor) && !frontierSet.contains(neighbor) && (block == Point2D::INFINITE || block != neighbor)) {
         //valid neighbor
         cameFrom[neighbor] = currentPos;
         frontier.push(neighbor);
         frontierSet.insert(neighbor);
         if (w->catWinsOnSpace(neighbor)) {
-          borderExit = neighbor;
-          goto exitLoop;
+          if (block == Point2D::INFINITE || block != neighbor) {
+            std::cout << "AGENT: FOUND VALID END "  << neighbor.x << ","<< neighbor.y << "\n";
+            borderExit = neighbor;
+            goto exitLoop;
+          }else {
+            std::cout << "AGENT: TRIED TO FIND PATH BUT WAS BLOCKED\n";
+          }
         }
       }
     }

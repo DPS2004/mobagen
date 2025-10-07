@@ -6,9 +6,10 @@ Point2D Cat::Move(World* world) {
   auto pos = world->getCat();
   std::vector<Point2D> path = generatePath(world);
   if (!path.empty()) {
+    std::cout <<"CAT: SHMOOVIN\n";
     return path.back();
   }
-  std::cout <<"CAT RANDOM\n";
+  std::cout <<"CAT: RANDOM\n";
   auto rand = Random::Range(0, 5);
   switch (rand) {
     case 0:
